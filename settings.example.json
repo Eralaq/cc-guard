@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "python \"C:/path/to/cc-guard/guard.py\"" } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "*", "hooks": [ { "type": "command", "command": "python \"C:/path/to/cc-guard/guard.py\"" } ] }
+    ]
+  }
+}

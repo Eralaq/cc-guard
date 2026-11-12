@@ -1,0 +1,5 @@
+# Real rules hold company names and forbidden words: never commit them
+rules.json
+*.log
+__pycache__/
+.venv*/

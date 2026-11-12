@@ -1,0 +1,7 @@
+{
+  "words": ["example-forbidden-word", "example-company-name"],
+  "regexes": ["ACME-\\d{4}"],
+  "allow_paths": ["C:/work/allowed-project"],
+  "allow_tools": ["TodoWrite", "Task", "Agent", "ToolSearch"],
+  "shell": "deny"
+}

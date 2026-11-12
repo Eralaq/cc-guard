@@ -1,0 +1,14 @@
+[
+  {"name": "company name with any ending", "regex": "company-stem\\w*", "match": "about Company-Stemov today", "no_match": "about something else"},
+  {"name": "project code", "regex": "PRJ-\\d{3,5}", "match": "see prj-1234 for details", "no_match": "PRJ-12"},
+  {"name": "corporate e-mail", "regex": "[\\w.+-]+@corp\\.example\\.com", "match": "write to ivan.petrov@corp.example.com", "no_match": "write to ivan@gmail.com"},
+  {"name": "internal host name", "regex": "\\b[\\w-]+\\.int\\.example\\b", "match": "ssh build-01.int.example", "no_match": "ssh example.com"},
+  {"name": "INN (10 or 12 digits, no checksum)", "regex": "\\b\\d{10}(\\d{2})?\\b", "match": "INN 7707083893", "no_match": "order 12345"},
+  {"name": "SNILS", "regex": "\\b\\d{3}-\\d{3}-\\d{3}[ -]\\d{2}\\b", "match": "SNILS 112-233-445 95", "no_match": "112-233 95"},
+  {"name": "Russian mobile phone", "regex": "(?:\\+7|\\b8)[\\s(-]*\\d{3}[\\s)-]*\\d{3}[\\s-]*\\d{2}[\\s-]*\\d{2}\\b", "match": "call +7 (916) 123-45-67", "no_match": "call 123-45"},
+  {"name": "passport series and number", "regex": "\\b\\d{2}\\s?\\d{2}\\s?\\d{6}\\b", "match": "passport 45 08 123456", "no_match": "passport 45 08"},
+  {"name": "bank card (13-19 digits)", "regex": "\\b(?:\\d[ -]?){13,19}\\b", "match": "card 4111 1111 1111 1111", "no_match": "card 4111"},
+  {"name": "IPv4 address", "regex": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b", "match": "server 10.20.30.40", "no_match": "version 1.2.3"},
+  {"name": "private key header", "regex": "-----BEGIN [A-Z ]*PRIVATE KEY-----", "match": "-----BEGIN RSA PRIVATE KEY-----", "no_match": "-----BEGIN CERTIFICATE-----", "note": "fake example, allow-secret-pattern"},
+  {"name": "AWS access key id", "regex": "AKIA[0-9A-Z]{16}", "match": "key AKIAIOSFODNN7EXAMPLE", "no_match": "key AKIA123"}
+]
