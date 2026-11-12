@@ -13,6 +13,8 @@ RULES = {
     "allow_paths": [ALLOWED],
     "allow_tools": ["TodoWrite", "Task"],
     "shell": "deny",
+    "gitignore": False,  # .gitignore handling is covered in test_gitignore.py
+    "block_git_dir": True,
 }
 
 

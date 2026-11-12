@@ -10,10 +10,26 @@ Python standard library only. Windows tested (Claude Code 2.1.322).
 | `UserPromptSubmit` | forbidden words and regexes in the prompt | block (exit 2), reason without the value |
 | `PreToolUse` | forbidden text in the tool input | block |
 | `PreToolUse` | `Read` `Edit` `Write` `NotebookEdit` `Grep` `Glob` path must be inside `allow_paths` | block otherwise |
+| `PreToolUse` | the same path lies inside a `.git` folder (any depth, nested repos too) | block |
+| `PreToolUse` | the same path is ignored by any `.gitignore` | block |
 | `PreToolUse` | `Bash` `PowerShell` | denied by default (`"shell": "deny"`) |
-| `PreToolUse` | any tool not in `allow_tools` | denied |
+| `PreToolUse` | any tool not in `allow_tools` (`"*"` allows all) | denied |
 
-Any internal error (bad JSON, missing rules file) blocks the request (fail-closed).
+Any internal error (bad JSON, missing rules file, git missing or failing, timeout) blocks the
+request (fail-closed).
+
+## How `.gitignore` is enforced
+
+Everything a `.gitignore` hides is off limits, at every level: the allowed folder, folders
+inside it, and folders above it. This also covers a repository nested in another repository,
+and a folder that has a `.gitignore` but no `.git`.
+
+The hook runs `git check-ignore --no-index` against an empty throwaway bare git directory
+(`~/.cc-guard/gitdir`, created on first use) with `--work-tree` set to the allowed folder and
+to every folder above it that holds a `.gitignore` or `.git`. A path ignored at any of those
+levels is blocked. Git is therefore required on the machine. The `.gitignore` file itself stays
+readable. Note that a repository ignored by its parent (for example a parent `.gitignore`
+listing `/some-repo/`) is blocked as a whole.
 
 ## Why shells are denied
 
@@ -32,8 +48,10 @@ Never commit it (`.gitignore` already excludes `rules.json`). Start from `rules.
 | `words` | Forbidden words. Matched as a **substring** after lowercasing and `yo` -> `ye`, so a stem such as `company-stem` also catches every ending. Too short a word blocks harmless text (`bank` blocks `bankruptcy`). |
 | `regexes` | Python regular expressions, case-insensitive, matched against the raw text. In JSON every backslash is doubled: `\d` is written `"\\d"`. |
 | `allow_paths` | The only folders tools may touch. Absolute paths (forward slashes work on Windows) or relative to the project folder. Everything else is blocked. |
-| `allow_tools` | Tools allowed besides the file tools. Default: `TodoWrite`, `Task`, `Agent`, `ToolSearch`. |
-| `shell` | `"deny"` (default) blocks `Bash` and `PowerShell`; `"allow"` lets them through unchecked. |
+| `allow_tools` | Tools allowed besides the file tools: a list of names, or `"*"` for all tools. Default: `TodoWrite`, `Task`, `Agent`, `ToolSearch`. |
+| `shell` | `"deny"` (default) blocks `Bash` and `PowerShell`; `"allow"` lets them through **unchecked**, see below. |
+| `gitignore` | `true` (default): block paths ignored by any `.gitignore`. |
+| `block_git_dir` | `true` (default): block everything inside a `.git` folder. |
 
 ## Regular expression examples
 
@@ -73,7 +91,8 @@ Environment: `CC_GUARD_RULES` rules path, `CC_GUARD_LOG` log path (default `~/.c
 
 ## Running it on a VDI (Windows)
 
-1. **Python.** `python --version` must print 3.8 or newer. The hook uses only the standard library.
+1. **Python and git.** `python --version` must print 3.8 or newer (the hook uses only the standard
+   library) and `git --version` must work: without git every file request is blocked.
 2. **Get the code onto the VDI.** Clone this repository if the VDI can reach the Git host.
    If it cannot, bring a copy by whatever channel the VDI allows (archive, mail bundle).
    Put it in a stable folder, for example `C:\tools\cc-guard`.
@@ -120,6 +139,11 @@ python -m unittest discover -s tests
 
 ## Known gaps
 
+- With `"shell": "allow"` a shell command can read any file, including ignored ones
+  (`grep -r word *` names no path). The path rules then protect only the other tools.
+- `Grep` and `Glob` check the path you pass, not the files they return: a directory search
+  can list files that a `.gitignore` inside it hides. Searching a directory that contains
+  ignored files is therefore a leak; point the search at specific files.
 - Images, attachments and tool output are not inspected (needs an egress gateway).
 - Allowed paths are checked by path only, not by file content.
 - Word matching is a substring match on folded text; word forms are not stemmed.
